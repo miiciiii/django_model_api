@@ -17,7 +17,7 @@ To use the models and run the project, follow these steps:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/your-repository.git
+   git clone https://github.com/miiciiii/django_model_api.git
    ```
 2. Navigate to the project directory:
    ```bash
