@@ -1,0 +1,45 @@
+asgiref==3.8.1
+certifi==2024.8.30
+charset-normalizer==3.3.2
+colorama==0.4.6
+dj-database-url==2.2.0
+Django==5.1.1
+django-cors-headers==4.4.0
+django-heroku==0.3.1
+djangorestframework==3.15.2
+filelock @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/filelock_1701807523603/work
+fsspec==2024.9.0
+gunicorn==23.0.0
+huggingface-hub==0.25.1
+idna==3.10
+Jinja2 @ file:///C:/b/abs_92fccttino/croot/jinja2_1716993447201/work
+joblib @ file:///C:/b/abs_f4b98l6lgk/croot/joblib_1718217224240/work
+MarkupSafe @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/markupsafe_1707425732791/work
+mkl-service==2.4.0
+mkl_fft @ file:///C:/b/abs_f55mv94vyg/croot/mkl_fft_1725370278455/work
+mkl_random @ file:///C:/b/abs_21ydbzdu8d/croot/mkl_random_1725370276095/work
+mpmath @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/mpmath_1699484863771/work
+networkx @ file:///C:/b/abs_36fmumtynt/croot/networkx_1720002497414/work
+numpy @ file:///C:/b/abs_c1ywpu18ar/croot/numpy_and_numpy_base_1708638681471/work/dist/numpy-1.26.4-cp312-cp312-win_amd64.whl#sha256=becc06674317799ad0165a939a7613809d0bee9bd328a1e4308c57c39cacf08c
+packaging==24.1
+psycopg2==2.9.9
+PyYAML @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/pyyaml_1699479991712/work
+regex==2024.9.11
+requests==2.32.3
+safetensors==0.4.5
+scikit-learn @ file:///C:/b/abs_aajc9f7v6r/croot/scikit-learn_1722067652693/work/dist/scikit_learn-1.5.1-cp312-cp312-win_amd64.whl#sha256=96ed6defb86c154d2ff360afdbf0c37c33c4c729d4a15c9d8ada0b70fd817816
+scipy @ file:///C:/b/abs_efv75hqhju/croot/scipy_1717521501389/work/dist/scipy-1.13.1-cp312-cp312-win_amd64.whl#sha256=b29dba691773ea983857b31cad894f31623348583937b6f03783facfd7abc734
+sentencepiece==0.2.0
+setuptools==75.1.0
+sqlparse==0.5.1
+sympy @ file:///C:/b/abs_4e4p71hdj_/croot/sympy_1724938208509/work
+threadpoolctl @ file:///C:/b/abs_def0dwqlft/croot/threadpoolctl_1719407816649/work
+tokenizers==0.20.0
+torch==2.4.1
+tqdm==4.66.5
+transformers==4.45.1
+typing_extensions @ file:///C:/b/abs_0as9mdbkfl/croot/typing_extensions_1715268906610/work
+tzdata==2024.2
+urllib3==2.2.3
+wheel==0.44.0
+whitenoise==6.7.0

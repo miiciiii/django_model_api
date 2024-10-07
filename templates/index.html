@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <title>Image Emotion Prediction</title>
+</head>
+<body>
+    <h1>Image Emotion Prediction</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" id="imageInput" multiple accept="image/*,image/jpeg,image/png,image/gif">
+        <button type="submit">Upload Images</button>
+    </form>
+
+    <!-- Display prediction results -->
+    {% if results %}
+        <div class="results">
+            <h2>Prediction Results</h2>
+            {% for result in results %}
+                <h3>Results for {{ result.filename }}:</h3>
+                <p><strong>Arousal:</strong> {{ result.arousal }}</p>
+                <p><strong>Dominance:</strong> {{ result.dominance }}</p>
+                <h4>Continuous Results:</h4>
+                <ul>
+                    {% for key, value in result.continuous.items %}
+                        <li><strong>{{ key }}:</strong> {{ value }}</li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Display overall prediction results -->
+    {% if overall_results %}
+        <div class="overall-results">
+            <h2>Overall Prediction Results</h2>
+            <p><strong>Most Common Arousal:</strong> {{ overall_results.arousal }}</p>
+            <p><strong>Most Common Dominance:</strong> {{ overall_results.dominance }}</p>
+            <h4>Average Continuous Results:</h4>
+            <ul>
+                {% for key, value in overall_results.average_continuous.items %}
+                    <li><strong>{{ key }}:</strong> {{ value }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+
+
+    {% if error %}
+        <p style="color: red;">Error: {{ error }}</p>
+    {% endif %}
+</body>
+</html>
