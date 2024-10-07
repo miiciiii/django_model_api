@@ -267,7 +267,7 @@ class PredictionAPIView(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-def test(request):
+def testt5pred(request):
     global QG, AG, DG
 
     # Load models if they are not already loaded
@@ -313,10 +313,10 @@ def test(request):
     # Prepare context for rendering
     context = {
         'passage': random_passage_str,
-        'questions-choices-answer': questions_and_answers
+        'questions_choices_answer': questions_and_answers
     }
 
-    return render(request, 'index.html', context)
+    return render(request, 'testt5.html', context)
 
 
 #######################################################################################
@@ -506,41 +506,12 @@ class ResNet50V2APIView(APIView):
 
 
 
-
-# class ResNet50V2APIView(APIView):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         # Initialize the model class
-#         self.model = ResNet50V2Model()
-
-#     def post(self, request):
-#         image_file = request.FILES.get('image')
-#         if not image_file:
-#             return Response({"error": "Image file is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         try:
-#             # Convert the uploaded image into a format suitable for PIL
-#             image = Image.open(image_file)
-
-#             # Make predictions using the ResNet50V2Model class
-#             result = self.model.predict(image)
-
-#             return Response({"result": result}, status=status.HTTP_200_OK)
-
-#         except Exception as e:
-#             # Handle any exceptions during processing
-#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
-
-
-def test(request):
+def testrespred(request):
     context = {}
 
     if request.method == 'POST':
         # Handle the image upload from the form
-        image_files = request.FILES.getlist('image')  # Get all uploaded images
+        image_files = request.FILES.getlist('imageInput')  # Get all uploaded images
 
         print(f"Number of images uploaded: {len(image_files)}")
         
@@ -553,16 +524,17 @@ def test(request):
                 images = [Image.open(image_file) for image_file in image_files]
 
                 # Get predictions for the uploaded images
+                result_batch = model.predict(images)  # This is a single dictionary
+
+                # Access the predictions
                 results = []
-                for idx, image in enumerate(images):
-                    # Get the prediction for each image
-                    result = model.predict([image])  # Wrap in list for single prediction
-                    # Add filename and prediction results to the list
+                for idx in range(len(images)):
+                    # Extract predictions for the current image
                     results.append({
                         'filename': image_files[idx].name,  # Get the original filename
-                        'arousal': result['arousal'],
-                        'dominance': result['dominance'],
-                        'continuous': result['continuous'],
+                        'arousal': result_batch['arousal'],
+                        'dominance': result_batch['dominance'],
+                        'continuous': result_batch['continuous'],
                     })
 
                 # Calculate overall prediction results
@@ -579,4 +551,10 @@ def test(request):
         else:
             context['error'] = "No images were uploaded."
     
-    return render(request, 'index.html', context)
+    return render(request, 'testresnet.html', context)
+
+
+
+def home(request):
+
+    return render(request, 'index.html')

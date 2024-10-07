@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T5 Model Predictions</title>
+    <link rel="stylesheet" href="{% static 'testt5.css' %}"> <!-- Link to your CSS file -->
+</head>
+<body>
+    <header>
+        <h1>T5 Model Predictions</h1>
+    </header>
+    <main>
+        <section class="passage">
+            <h2>Random Passage</h2>
+            <p>{{ passage }}</p>
+        </section>
+
+        <section class="questions">
+            <h2>Generated Questions and Answers</h2>
+            {% if questions_choices_answer %}
+                <ul>
+                    {% for item in questions_choices_answer %}
+                        <li>
+                            <h3>Keyword: {{ item.keyword }}</h3>
+                            <p><strong>Question:</strong> {{ item.question }}</p>
+                            <p><strong>Answer:</strong> {{ item.answer }}</p>
+                            <p><strong>Choices:</strong></p>
+                            <ul>
+                                {% for choice in item.choices %}
+                                    <li>{{ choice }}</li>
+                                {% empty %}
+                                    <li>No choices generated.</li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No questions generated.</p>
+            {% endif %}
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Your Name. All rights reserved.</p>
+    </footer>
+</body>
+</html>
