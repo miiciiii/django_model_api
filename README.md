@@ -3,7 +3,7 @@
 
 ## Overview
 
-This repository contains [brief description of the project]. The models used in this project are stored in a Google Drive folder, which can be accessed using the link provided below.
+This repository features Django API views utilizing REST API to enable the integration and use of models across other websites. The models used in this project are stored in a Google Drive folder, which can be accessed using the link provided below.
 
 ## Models
 
