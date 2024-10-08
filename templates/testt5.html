@@ -13,8 +13,13 @@
     </header>
     <main>
         <section class="passage">
-            <h2>Random Passage</h2>
-            <p>{{ passage }}</p>
+            <h2>Enter Passage</h2>
+            <form method="POST">
+                {% csrf_token %}
+                <textarea name="passage" rows="5" cols="60" placeholder="Enter your passage here...">{{ passage }}</textarea>
+                <br><br>
+                <input type="submit" value="Generate Questions">
+            </form>
         </section>
 
         <section class="questions">
