@@ -1,5 +1,6 @@
 # Importing Libraries
 
+import os
 from PIL import Image # type: ignore 
 
 from django.shortcuts import render
@@ -9,10 +10,16 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 
 
-from .model_loader import QG, AG, DG, ResNet50, initialize_models
+from .model_loader import initialize_models
 from . import utils as utils
 
-initialize_models()
+models = initialize_models()
+
+# Access models
+QG = models['QG']
+AG = models['AG']
+DG = models['DG']
+ResNet50 = models['ResNet50']
 
 if QG is None or AG is None or DG is None or ResNet50 is None:
     raise RuntimeError("RUNTIME ERROR : MODELS ARE NOT INITIALIZED")
@@ -25,149 +32,100 @@ if QG is None or AG is None or DG is None or ResNet50 is None:
 #######################################################################################
 
 
-# class PredictionAPIView(APIView):
-#     def post(self, request):
-#         # Extract the passage from the request data
-#         passage_input = request.data.get('passage', None)
-
-#         print(f"PASSAGE : {passage_input}")
-        
-#         if passage_input is None:
-#             return Response({"error": "No passage provided."}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # Optionally, you can also clean or validate the input passage if needed
-
-#         # Extract up to 5 keywords from the provided passage
-#         keywords = utils.get_keywords(passage_input, num_keywords=5)
-
-#         # Initialize a dict to store questions-choices-answer objects
-#         questions_and_answers_dict = {}
-
-#         if keywords:
-#             # Loop over the extracted keywords to generate multiple questions and answers
-#             for idx, keyword in enumerate(keywords):
-#                 generated_question = QG.generate(keyword, passage_input)
-#                 generated_answer = AG.generate(generated_question, passage_input)
-#                 generated_distractors = DG.generate(generated_question, generated_answer, passage_input)
-
-#                 # Classify the question type
-#                 question_type = utils.classify_question_type(generated_question)
-
-#                 # Store the result in the required format using unique keys like "question_1", "question_2", etc.
-#                 questions_and_answers_dict[f"question_{idx+1}"] = {
-#                     "question": generated_question,
-#                     "choices": generated_distractors,
-#                     "answer": generated_answer,
-#                     "question_type": question_type  # Use the classified question type
-#                 }
-
-#         else:
-#             # If no keywords found, return a default message
-#             questions_and_answers_dict["question_1"] = {
-#                 "question": "No question generated",
-#                 "choices": [],
-#                 "answer": "N/A",
-#                 "question_type": "literal"
-#             }
-
-#         # Prepare the final response with the passage and questions-choices-answer dict
-#         response_data = {
-#             'passage': passage_input,
-#             'questions-choices-answer': questions_and_answers_dict
-#         }
-
-#         return Response(response_data, status=status.HTTP_200_OK)
-
 
 class PredictionAPIView(APIView):
     def post(self, request):
-        # Extract the passage from the request data
         passage_input = request.data.get('passage', None)
-        
+
         if passage_input is None:
             return Response({"error": "No passage provided."}, status=status.HTTP_400_BAD_REQUEST)
 
-
-        # Extract up to 5 keywords from the provided passage
         keywords = utils.get_keywords(passage_input, num_keywords=10)
+        print(f"Extracted keywords: {keywords}")
 
-        # Initialize a dict to store questions-choices-answer objects
         questions_and_answers_dict = {}
 
-        
+
         if keywords:
             for idx, keyword in enumerate(keywords):
                 generated_distractors_set = set()
+                print(f"Processing keyword {idx + 1}: {keyword}")
 
-                generated_question = QG.generate(keyword, passage_input)
-                generated_answer = AG.generate(generated_question, passage_input)
-                generated_distractors = DG.generate(generated_question, generated_answer, passage_input)
+                while len(questions_and_answers_dict) != 5:
+                    generated_question = QG.generate(keyword, passage_input)
+                    generated_answer = AG.generate(generated_question, passage_input)
+                    generated_distractors = DG.generate(generated_question, generated_answer, passage_input)
 
-                if generated_answer == '<cls>':
-                    generated_answer = keyword
+                    print(f"Generated question: {generated_question}")
+                    print(f"Generated answer: {generated_answer}")
+                    print(f"Generated distractors: {generated_distractors}")
 
-                for i in generated_distractors:
-                    print(f"Generated distractor: {i}")
+                    if len(generated_answer) >= 30:
+                        generated_answer = keyword
+                        print(f"Using keyword as answer: {generated_answer}")
 
-                for i in generated_distractors:
-                    if i not in generated_distractors_set:
-                        generated_distractors_set.add(i)
-                        print(f"Added to distractors set: {i}")
+                    for i in generated_distractors:
+                        if i not in generated_distractors_set:
+                            generated_distractors_set.add(i)
+                    
 
-                max_attempts = 3
-                attempts = 0
+                    max_attempts = 2
+                    attempts = 0
 
-                while len(generated_distractors_set) < 3 and attempts < max_attempts:
-                    for distractor in generated_distractors:
-                        print(f"PRE Distractor: {distractor}")
-                        attempts += 1
-                        print(f"ATTEMPTS: {attempts}")
-                        
-                        new_distractor = DG.generate(generated_question, distractor, passage_input)
-                        new_distractor_tuple = tuple(new_distractor)
+                    while len(generated_distractors_set) < 3 and attempts < max_attempts:
+                        for distractor in generated_distractors:
+                            attempts += 1
+                            new_distractor = DG.generate(generated_question, distractor, passage_input)
+                            new_distractor_tuple = tuple(new_distractor)
 
-                        for i in new_distractor_tuple:
-                            if i not in generated_distractors_set:
-                                generated_distractors_set.add(i)
+                            for i in new_distractor_tuple:
+                                if i not in generated_distractors_set:
+                                    generated_distractors_set.add(i)
 
-                        if len(generated_distractors_set) >= 3:
-                            break  # Exit loop if we have enough distractors
+                            print(f"New distractor generated: {new_distractor}")
 
-                    if attempts >= max_attempts:
-                        print(f"Max attempts reached without enough distractors.")
-                        break  # Exit if max attempts reached
+                            if len(generated_distractors_set) >= 3:
+                                print("Sufficient distractors generated, breaking out of attempts loop.")
+                                break
 
-                # Final check for enough distractors before appending question and answer
-                if len(generated_distractors_set) >= 3:
-                    generated_distractors = list(generated_distractors_set)
-                    question_type = utils.classify_question_type(generated_question) 
-                    questions_and_answers_dict[f"question_{idx+1}"] = {
-                        "question": generated_question,
-                        "choices": generated_distractors[:3],
-                        "answer": generated_answer,
-                        "question_type": question_type
-                    }
-                else:
-                    print(f"Skipping question for '{keyword}' due to insufficient distractors.")
+                            if attempts >= max_attempts:
+                                print("Max attempts reached without enough distractors.")
+                                break
 
+                    if len(generated_distractors_set) >= 3:
+                        generated_distractors = list(generated_distractors_set)
+                        question_type = utils.classify_question_type(generated_question)
+                        questions_and_answers_dict[f"question_{idx + 1}"] = {
+                            "question": generated_question,
+                            "choices": generated_distractors[:3],
+                            "answer": generated_answer,
+                            "question_type": question_type
+                        }
+                        print(f"Added question {idx + 1} to the dictionary.")
+                        break
+                    else:
+                        print(f"Skipping question for '{keyword}' due to insufficient distractors.")
+                        break
 
         else:
-            # If no keywords found, return a default message
             questions_and_answers_dict["Invalid"] = {
                 "question": "No question generated",
                 "choices": [],
                 "answer": "N/A",
-                "question_type": "unkown"
+                "question_type": "unknown"
             }
 
-        # Prepare the final response with the passage and questions-choices-answer dict
         response_data = {
             'passage': passage_input,
             'questions-choices-answer': questions_and_answers_dict
         }
 
+        print("Final response data prepared.")
         return Response(response_data, status=status.HTTP_200_OK)
-    
+
+
+
+
 
 def testt5pred(request):
     random_passage_str = ''

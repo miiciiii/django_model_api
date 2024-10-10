@@ -25,10 +25,16 @@ AROUSAL_ENCODER_PATH = os.path.join(settings.BASE_DIR, 'ResNet50V2_models_and_la
 DOMINANCE_ENCODER_PATH = os.path.join(settings.BASE_DIR, 'ResNet50V2_models_and_labelencoder', 'label_encoder_dominance.pkl')
 
 # Initialize model instances
+
+QGMODEL = T5ForConditionalGeneration.from_pretrained(QUESTION_GENERATION_MODEL_PATH)
+AGMODEL = AutoModelForQuestionAnswering.from_pretrained(ANSWER_GENERATION_MODEL_PATH)
+DGMODEL = AutoModelForSeq2SeqLM.from_pretrained(DISTRACTOR_GENERATION_MODEL_PATH)
+
 QG = None
 AG = None
 DG = None
 ResNet50 = None
+
 
 class QuestionGeneration:
     _instance = None
@@ -43,7 +49,7 @@ class QuestionGeneration:
         if self._initialized:
             return
         print("Loading model from:", QUESTION_GENERATION_MODEL_PATH)
-        self.model = T5ForConditionalGeneration.from_pretrained(QUESTION_GENERATION_MODEL_PATH)
+        self.model = QGMODEL
         self.tokenizer = T5Tokenizer.from_pretrained(QUESTION_GENERATION_MODEL_PATH)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = self.model.to(self.device)
@@ -75,7 +81,7 @@ class AnswerGeneration:
         if self._initialized:
             return
         print("Loading model from:", ANSWER_GENERATION_MODEL_PATH)
-        self.model = AutoModelForQuestionAnswering.from_pretrained(ANSWER_GENERATION_MODEL_PATH)
+        self.model = AGMODEL
         self.tokenizer = AutoTokenizer.from_pretrained(ANSWER_GENERATION_MODEL_PATH)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = self.model.to(self.device)
@@ -108,7 +114,7 @@ class DistractorGeneration:
         if self._initialized:
             return
         print("Loading model from:", DISTRACTOR_GENERATION_MODEL_PATH)
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(DISTRACTOR_GENERATION_MODEL_PATH)
+        self.model = DGMODEL
         self.tokenizer = AutoTokenizer.from_pretrained(DISTRACTOR_GENERATION_MODEL_PATH)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = self.model.to(self.device)
@@ -213,7 +219,6 @@ class ResNet50V2Model:
             "continuous": continuous_results
         }
 
-# Function to initialize all models
 def initialize_models():
     global QG, AG, DG, ResNet50
     if QG is None:
@@ -224,8 +229,9 @@ def initialize_models():
         DG = DistractorGeneration()
     if ResNet50 is None:
         ResNet50 = ResNet50V2Model()
-
-# Call the function to initialize models only if not in autoreload mode
-if os.environ.get('RUN_MAIN', None) is None:
-    initialize_models()
-    print('All Models are Loaded Successfully. . .')
+    return {
+        'QG': QG,
+        'AG': AG,
+        'DG': DG,
+        'ResNet50': ResNet50
+    }
