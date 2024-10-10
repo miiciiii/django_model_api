@@ -1,79 +1,93 @@
-/* Basic Reset */
-* {
-    box-sizing: border-box;
+/* Reset some default styles for a consistent look */
+body, h1, h2, h3, h4, p, ul, li, button, input {
     margin: 0;
     padding: 0;
+    list-style: none; /* Remove list bullets */
 }
 
-/* Body Styles */
 body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    background-color: #f4f4f4;
-    color: #333;
-    padding: 20px;
-}
-
-/* Header Styles */
-h1 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #4CAF50; /* Green color */
-}
-
-/* Form Styles */
-form {
+    font-family: Arial, sans-serif; /* Use a clean, modern font */
+    line-height: 1.6; /* Improve readability */
+    background-color: #f9f9f9; /* Light background color */
+    color: #333; /* Dark text color for contrast */
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin-bottom: 30px;
+    align-items: center; /* Center items horizontally */
+    padding: 20px; /* Add padding around the body */
+    min-height: 100vh; /* Full height layout */
+    position: relative; /* Positioning context for circles */
 }
 
+/* Background circles */
+body::before {
+    content: "";
+    position: absolute; /* Position circles absolutely */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(238, 174, 202, 0.3) 20%, rgba(148, 187, 233, 0.3) 60%, rgba(255, 255, 255, 0) 80%);
+    z-index: -1; /* Send the circles behind the content */
+}
+
+/* Header style */
+h1 {
+    color: #9370DB; /* Light violet for header */
+    text-align: center; /* Center the header text */
+    margin-bottom: 20px; /* Space below the header */
+}
+
+/* Form styles */
+form {
+    background-color: white; /* White background for the form */
+    padding: 20px; /* Padding around form elements */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center; /* Center items horizontally */
+    gap: 15px; /* Space between elements */
+    width: 100%;
+    max-width: 400px; /* Max width for larger screens */
+}
+
+/* File input style */
 input[type="file"] {
-    margin-bottom: 10px;
+    border: 2px solid #9370DB; /* Light violet border */
+    padding: 10px; /* Padding inside the file input */
+    border-radius: 5px; /* Rounded corners */
+    width: 100%; /* Full width */
 }
 
+/* Button styles */
 button {
-    background-color: #4CAF50; /* Green color */
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
+    background-color: #BA55D3; /* Light violet button background */
+    color: white; /* Button text color */
+    padding: 10px 20px; /* Padding inside the button */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Change cursor on hover */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
 }
 
+/* Button hover effect */
 button:hover {
-    background-color: #45a049; /* Darker green */
+    background-color: #9932CC; /* Darker shade on hover */
 }
 
-/* Results Section */
-.results {
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+/* Results section styles */
+.results, .overall-results {
+    background-color: white; /* White background for results */
+    padding: 20px; /* Padding around results */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    margin-top: 20px; /* Space above results */
+    width: 100%;
+    max-width: 400px; /* Max width for larger screens */
 }
 
-h2 {
-    color: #333;
-    margin-bottom: 10px;
-}
-
-h3 {
-    color: #333;
-    margin-top: 15px;
-}
-
-ul {
-    list-style-type: none;
-    padding-left: 0;
-}
-
-/* Error Message */
-p[style*="color: red"] {
-    color: red;
-    font-weight: bold;
-    margin-top: 20px;
+/* Error message style */
+.error {
+    color: red; /* Red text for errors */
+    margin-top: 20px; /* Space above error message */
 }

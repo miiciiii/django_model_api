@@ -1,58 +1,80 @@
-/* Basic Reset */
-* {
+/* Reset some default styles for a consistent look */
+body, h1, p, a {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
-    line-height: 1.6;
-}
-
-header {
-    background: #35424a;
-    color: white;
-    padding: 20px 0;
-    text-align: center;
-}
-
-main {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 80vh;
-}
-
-.button-container {
+    font-family: Arial, sans-serif; /* Use a clean, modern font */
+    line-height: 1.6; /* Improve readability */
+    background-color: #f9f9f9; /* Light background color */
+    color: #333; /* Dark text color for contrast */
     display: flex;
     flex-direction: column;
+    min-height: 100vh; /* Full height layout */
+    position: relative; /* Positioning context for circles */
+}
+
+/* Background circles */
+body::before {
+    content: "";
+    position: absolute; /* Position circles absolutely */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(238, 174, 202, 0.3) 20%, rgba(148, 187, 233, 0.3) 60%, rgba(255, 255, 255, 0) 80%);
+    z-index: -1; /* Send the circles behind the content */
+}
+
+/* Style the header */
+header {
+    background-color: #9370DB; /* Light violet for the header */
+    color: white; /* White text for contrast */
+    padding: 20px; /* Add space around header elements */
+    text-align: center; /* Center the text */
+}
+
+/* Style the main content area */
+main {
+    flex: 1; /* Allow main to take up available space */
+    display: flex;
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+    padding: 20px; /* Add padding around main content */
+}
+
+/* Button container style */
+.button-container {
+    display: flex; /* Use flexbox to arrange buttons */
+    flex-direction: column; /* Stack buttons vertically */
     gap: 20px; /* Space between buttons */
 }
 
+/* Button styles */
 .button {
-    background-color: #5cb85c;
-    color: white;
-    padding: 15px 30px;
-    text-align: center;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 18px;
-    transition: background-color 0.3s;
+    display: inline-block; /* Allow for padding and margin */
+    background-color: #BA55D3; /* Light violet button background color */
+    color: white; /* Button text color */
+    padding: 15px 30px; /* Padding inside the button */
+    text-decoration: none; /* Remove underline from links */
+    border-radius: 5px; /* Rounded corners */
+    text-align: center; /* Center text inside buttons */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
 }
 
+/* Button hover effect */
 .button:hover {
-    background-color: #4cae4c; /* Darker green on hover */
+    background-color: #9932CC; /* Darker shade on hover */
 }
 
+/* Style the footer */
 footer {
-    text-align: center;
-    padding: 20px;
-    background: #35424a;
-    color: white;
-    position: absolute;
-    bottom: 0;
-    width: 100%;
+    text-align: center; /* Center the footer text */
+    padding: 10px; /* Add padding around footer */
+    background-color: #9370DB; /* Same light violet as header */
+    color: white; /* White text for contrast */
+    position: relative; /* Positioning context for footer */
+    bottom: 0; /* Stick the footer to the bottom */
+    width: 100%; /* Full width */
 }

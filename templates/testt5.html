@@ -26,7 +26,7 @@
             <h2>Generated Questions and Answers</h2>
             {% if questions_choices_answer %}
                 <ul>
-                    {% for item in questions_choices_answer %}
+                    {% for key, item in questions_choices_answer.items %}
                         <li>
                             <h3>Keyword: {{ item.keyword }}</h3>
                             <p><strong>Question:</strong> {{ item.question }}</p>
