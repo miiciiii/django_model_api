@@ -259,6 +259,59 @@ def testt5pred(request):
 #         except Exception as e:
 #             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# class ResNet50V2APIView(APIView):
+#     parser_classes = (MultiPartParser, FormParser)
+
+#     def post(self, request):
+#         """
+#         Handle image uploads and return predictions for all classes.
+#         """
+#         # Handle the image upload from the form
+#         image_files = request.FILES.getlist('images')  # Expecting multiple images
+
+#         if not image_files:
+#             return Response({"error": "No images were uploaded."}, status=status.HTTP_400_BAD_REQUEST)
+
+#         results = []
+
+#         try:
+#             # Initialize the model
+#             model = ResNet50
+
+#             images = []
+#             for image_file in image_files:
+#                 try:
+#                     image = Image.open(image_file)
+#                     images.append(image)
+#                 except Exception as e:
+#                     return Response(
+#                         {"error": f"Error processing image {image_file.name}: {str(e)}"},
+#                         status=status.HTTP_400_BAD_REQUEST,
+#                     )
+
+#             # Predict using the ResNet50V2 model
+#             predictions = model.predict(images)  # Using the predict method of the model
+
+#             # Collect the results with filenames and predictions
+#             for idx, prediction in enumerate(predictions):
+#                 results.append({
+#                     'filename': image_files[idx].name,
+#                     'arousal': prediction['arousal'],
+#                     'dominance': prediction['dominance'],
+#                     'frustration': prediction['frustration'],
+#                     'mental_demand': prediction['mental_demand'],
+#                     'performance': prediction['performance'],
+#                     'physical_demand': prediction['physical_demand'],
+#                     'effort': prediction['effort'],
+#                 })
+        
+#             return Response({
+#                 "results": results,
+#             }, status=status.HTTP_200_OK)
+
+#         except Exception as e:
+#             return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class ResNet50V2APIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
@@ -292,7 +345,7 @@ class ResNet50V2APIView(APIView):
             # Predict using the ResNet50V2 model
             predictions = model.predict(images)  # Using the predict method of the model
 
-            # Collect the results with filenames and predictions
+            # Collect the raw results with filenames and predictions
             for idx, prediction in enumerate(predictions):
                 results.append({
                     'filename': image_files[idx].name,
@@ -304,14 +357,59 @@ class ResNet50V2APIView(APIView):
                     'physical_demand': prediction['physical_demand'],
                     'effort': prediction['effort'],
                 })
+        
+            # Now, calculate the aggregated results
+            aggregated_results = utils.calculate_prediction_results(predictions)
 
+            # Return both the raw and aggregated results
             return Response({
-                "results": results
+                "results": results,
+                "aggregated_results": aggregated_results  # Include aggregated results
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# def testrespred(request):
+#     context = {}
+
+#     if request.method == 'POST':
+#         # Handle the image upload from the form
+#         image_files = request.FILES.getlist('imageInput')  # Get all uploaded images
+
+#         if image_files:
+#             try:
+#                 # Prepare images for prediction
+#                 images = []
+#                 for image_file in image_files:
+#                     try:
+#                         image = Image.open(image_file)
+#                         images.append(image)
+#                     except Exception as img_open_err:
+#                         context['error'] = f"Could not open image {image_file.name}."
+#                         return render(request, 'testresnet.html', context)
+
+#                 # Get predictions
+#                 results = ResNet50.predict(images)
+
+
+#                 # Prepare results for rendering
+#                 results_to_display = [{
+#                     'filename': image_files[idx].name,
+#                     **result  # Unpack all predictions directly into the result dictionary
+#                 } for idx, result in enumerate(results)]
+
+#                 # Add the results to context
+#                 context['results'] = results_to_display
+
+#             except Exception as e:
+#                 context['error'] = str(e)
+
+#         else:
+#             context['error'] = "No images were uploaded."
+
+#     return render(request, 'testresnet.html', context)
 
 def testrespred(request):
     context = {}
@@ -333,7 +431,8 @@ def testrespred(request):
                         return render(request, 'testresnet.html', context)
 
                 # Get predictions
-                results = ResNet50.predict(images)
+                model = ResNet50  # Initialize model
+                results = model.predict(images)  # Using the predict method of the model
 
                 # Prepare results for rendering
                 results_to_display = [{
@@ -341,8 +440,12 @@ def testrespred(request):
                     **result  # Unpack all predictions directly into the result dictionary
                 } for idx, result in enumerate(results)]
 
-                # Add the results to context
+                # Calculate aggregated results
+                aggregated_results = utils.calculate_prediction_results(results)
+
+                # Add both raw and aggregated results to context
                 context['results'] = results_to_display
+                context['aggregated_results'] = aggregated_results  # Add aggregated results
 
             except Exception as e:
                 context['error'] = str(e)
@@ -351,7 +454,6 @@ def testrespred(request):
             context['error'] = "No images were uploaded."
 
     return render(request, 'testresnet.html', context)
-
 
 
 def home(request):

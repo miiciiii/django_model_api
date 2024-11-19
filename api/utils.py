@@ -69,21 +69,37 @@ def calculate_prediction_results(results):
 
     Args:
         results (list): A list of dictionaries containing arousal, dominance, and continuous results.
+            Each dictionary has:
+            - 'arousal': categorical prediction
+            - 'dominance': categorical prediction
+            - 'frustration': continuous prediction
+            - 'mental_demand': continuous prediction
+            - 'performance': continuous prediction
+            - 'physical_demand': continuous prediction
+            - 'effort': continuous prediction
 
     Returns:
-        dict: A dictionary containing the most common arousal, most common dominance, and average continuous results.
+        dict: A dictionary containing the most common arousal, most common dominance,
+              and average continuous results.
     """
-    # Extract arousal and dominance results as strings
+    # Extract arousal and dominance values as strings
     arousal_values = [result['arousal'] for result in results]
     dominance_values = [result['dominance'] for result in results]
     
     # Extract continuous results
-    continuous_results = {}
+    continuous_results = {
+        'frustration': [],
+        'mental_demand': [],
+        'performance': [],
+        'physical_demand': [],
+        'effort': []
+    }
     for result in results:
-        for key, value in result['continuous'].items():
-            if key not in continuous_results:
-                continuous_results[key] = []
-            continuous_results[key].append(value)
+        continuous_results['frustration'].append(result['frustration'])
+        continuous_results['mental_demand'].append(result['mental_demand'])
+        continuous_results['performance'].append(result['performance'])
+        continuous_results['physical_demand'].append(result['physical_demand'])
+        continuous_results['effort'].append(result['effort'])
 
     # Calculate most common arousal and dominance
     most_common_arousal = Counter(arousal_values).most_common(1)[0][0]

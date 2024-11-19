@@ -16,7 +16,7 @@
         <button type="submit">Upload Images</button>
     </form>
 
-    <!-- Display prediction results -->
+    <!-- Display individual prediction results -->
     {% if results %}
         <div class="results">
             <h2>Prediction Results</h2>
@@ -36,19 +36,19 @@
         </div>
     {% endif %}
 
-    <!-- Display overall prediction results -->
-    {% if overall_results %}
-        <div class="overall-results">
-            <h2>Overall Prediction Results</h2>
-            <p><strong>Most Common Arousal:</strong> {{ overall_results.arousal }}</p>
-            <p><strong>Most Common Dominance:</strong> {{ overall_results.dominance }}</p>
+    <!-- Display overall aggregated prediction results -->
+    {% if aggregated_results %}
+        <div class="aggregated-results">
+            <h2>Overall Aggregated Prediction Results</h2>
+            <p><strong>Most Common Arousal:</strong> {{ aggregated_results.arousal }}</p>
+            <p><strong>Most Common Dominance:</strong> {{ aggregated_results.dominance }}</p>
             <h4>Average Continuous Results:</h4>
             <ul>
-                <li><strong>Frustration:</strong> {{ overall_results.average_continuous.frustration }}</li>
-                <li><strong>Mental Demand:</strong> {{ overall_results.average_continuous.mental_demand }}</li>
-                <li><strong>Performance:</strong> {{ overall_results.average_continuous.performance }}</li>
-                <li><strong>Physical Demand:</strong> {{ overall_results.average_continuous.physical_demand }}</li>
-                <li><strong>Effort:</strong> {{ overall_results.average_continuous.effort }}</li>
+                <li><strong>Frustration:</strong> {{ aggregated_results.average_continuous.frustration }}</li>
+                <li><strong>Mental Demand:</strong> {{ aggregated_results.average_continuous.mental_demand }}</li>
+                <li><strong>Performance:</strong> {{ aggregated_results.average_continuous.performance }}</li>
+                <li><strong>Physical Demand:</strong> {{ aggregated_results.average_continuous.physical_demand }}</li>
+                <li><strong>Effort:</strong> {{ aggregated_results.average_continuous.effort }}</li>
             </ul>
         </div>
     {% endif %}
