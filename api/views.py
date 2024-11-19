@@ -226,10 +226,46 @@ def testt5pred(request):
 #######################################################################################
 
 
+# class ResNet50V2APIView(APIView):
+#     parser_classes = (MultiPartParser, FormParser)
+
+#     def post(self, request):
+#         # Handle the image upload from the form
+#         image_files = request.FILES.getlist('images')  # Expecting multiple images
+
+#         if not image_files:
+#             return Response({"error": "No images were uploaded."}, status=status.HTTP_400_BAD_REQUEST)
+
+#         results = []
+
+#         try:
+#             for image_file in image_files:
+#                 image = Image.open(image_file)
+#                 result = ResNet50.predict([image])  # Use the global instance
+#                 results.append({
+#                     'filename': image_file.name,
+#                     'arousal': result['arousal'],
+#                     'dominance': result['dominance'],
+#                     'continuous': result['continuous'],
+#                 })
+
+#             overall_results = utils.calculate_prediction_results(results)
+
+#             return Response({
+#                 "results": results,
+#                 "overall_results": overall_results
+#             }, status=status.HTTP_200_OK)
+
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class ResNet50V2APIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request):
+        """
+        Handle image uploads and return predictions for all classes.
+        """
         # Handle the image upload from the form
         image_files = request.FILES.getlist('images')  # Expecting multiple images
 
@@ -239,25 +275,42 @@ class ResNet50V2APIView(APIView):
         results = []
 
         try:
+            # Initialize the model
+            model = ResNet50
+
+            images = []
             for image_file in image_files:
-                image = Image.open(image_file)
-                result = ResNet50.predict([image])  # Use the global instance
+                try:
+                    image = Image.open(image_file)
+                    images.append(image)
+                except Exception as e:
+                    return Response(
+                        {"error": f"Error processing image {image_file.name}: {str(e)}"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            # Predict using the ResNet50V2 model
+            predictions = model.predict(images)  # Using the predict method of the model
+
+            # Collect the results with filenames and predictions
+            for idx, prediction in enumerate(predictions):
                 results.append({
-                    'filename': image_file.name,
-                    'arousal': result['arousal'],
-                    'dominance': result['dominance'],
-                    'continuous': result['continuous'],
+                    'filename': image_files[idx].name,
+                    'arousal': prediction['arousal'],
+                    'dominance': prediction['dominance'],
+                    'frustration': prediction['frustration'],
+                    'mental_demand': prediction['mental_demand'],
+                    'performance': prediction['performance'],
+                    'physical_demand': prediction['physical_demand'],
+                    'effort': prediction['effort'],
                 })
 
-            overall_results = utils.calculate_prediction_results(results)
-
             return Response({
-                "results": results,
-                "overall_results": overall_results
+                "results": results
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def testrespred(request):
@@ -267,13 +320,8 @@ def testrespred(request):
         # Handle the image upload from the form
         image_files = request.FILES.getlist('imageInput')  # Get all uploaded images
 
-        print(f"Number of images uploaded: {len(image_files)}")
-
         if image_files:
             try:
-                # Use the already loaded ResNet50 instance
-                model = ResNet50
-
                 # Prepare images for prediction
                 images = []
                 for image_file in image_files:
@@ -281,38 +329,28 @@ def testrespred(request):
                         image = Image.open(image_file)
                         images.append(image)
                     except Exception as img_open_err:
-                        print(f"Error opening image {image_file.name}: {img_open_err}")
                         context['error'] = f"Could not open image {image_file.name}."
                         return render(request, 'testresnet.html', context)
 
-                # Get predictions for the uploaded images
-                results = model.predict(images)  # Call the predict method directly
-                print(f"Predictions: {results}")
+                # Get predictions
+                results = ResNet50.predict(images)
 
                 # Prepare results for rendering
                 results_to_display = [{
                     'filename': image_files[idx].name,
-                    'arousal': results['arousal'],
-                    'dominance': results['dominance'],
-                    'continuous': results['continuous'],
-                } for idx in range(len(images))]
+                    **result  # Unpack all predictions directly into the result dictionary
+                } for idx, result in enumerate(results)]
 
-                overall_results = utils.calculate_prediction_results(results_to_display)
-
-                # Add the results to context to display on the page
+                # Add the results to context
                 context['results'] = results_to_display
-                context['overall_results'] = overall_results  # Include overall results for rendering
 
             except Exception as e:
-                # If there's an error, add it to the context
-                print(f"An error occurred during prediction: {e}")
                 context['error'] = str(e)
 
         else:
             context['error'] = "No images were uploaded."
 
     return render(request, 'testresnet.html', context)
-
 
 
 

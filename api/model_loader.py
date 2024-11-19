@@ -20,9 +20,10 @@ from transformers import (  # type: ignore
 QUESTION_GENERATION_MODEL_PATH = os.path.join(settings.BASE_DIR, 'T5_models', 'T5QuestionGenerationModel')
 ANSWER_GENERATION_MODEL_PATH = os.path.join(settings.BASE_DIR, 'T5_models', 'T5AnswerGenerationModel')
 DISTRACTOR_GENERATION_MODEL_PATH = os.path.join(settings.BASE_DIR, 'T5_models', 'T5DistractorGenerationModel')
-RESNET50V2_MODEL_PATH = os.path.join(settings.BASE_DIR, 'ResNet50V2_models_and_labelencoder', 'resnet50v2_model.keras')
-AROUSAL_ENCODER_PATH = os.path.join(settings.BASE_DIR, 'ResNet50V2_models_and_labelencoder', 'label_encoder_arousal.pkl')
-DOMINANCE_ENCODER_PATH = os.path.join(settings.BASE_DIR, 'ResNet50V2_models_and_labelencoder', 'label_encoder_dominance.pkl')
+RESNET50V2_MODEL_PATH = os.path.join(settings.BASE_DIR, 'ResNet50V2_models_and_labelencoder', 'ResNet50V2t3.keras')
+AROUSAL_ENCODER_PATH = os.path.join(settings.BASE_DIR, 'ResNet50V2_models_and_labelencoder', 'Arousal_label_encoder.joblib')
+DOMINANCE_ENCODER_PATH = os.path.join(settings.BASE_DIR, 'ResNet50V2_models_and_labelencoder', 'Dominance_label_encoder.joblib')
+MIN_MAX_SCALER_PATH = os.path.join(settings.BASE_DIR, 'ResNet50V2_models_and_labelencoder', 'min_max_scaler.joblib')
 
 # Initialize model instances
 
@@ -132,6 +133,94 @@ class DistractorGeneration:
         return distractors
 
 
+# class ResNet50V2Model:
+#     _instance = None
+
+#     def __new__(cls, *args, **kwargs):
+#         if cls._instance is None:
+#             cls._instance = super(ResNet50V2Model, cls).__new__(cls)
+#             cls._instance._initialized = False
+#         return cls._instance
+
+#     def __init__(self):
+#         if self._initialized:
+#             return
+#         self.model = self.load_model(RESNET50V2_MODEL_PATH)
+#         self.arousal_encoder = self.load_encoder(AROUSAL_ENCODER_PATH, "Arousal")
+#         self.dominance_encoder = self.load_encoder(DOMINANCE_ENCODER_PATH, "Dominance")
+#         self._initialized = True
+
+#     def load_model(self, model_path):
+#         if os.path.exists(model_path):
+#             print(f"Loading model from {model_path}...")
+#             return tf.keras.models.load_model(model_path)
+#         else:
+#             raise FileNotFoundError(f"Model file not found at {model_path}")
+
+#     def load_encoder(self, encoder_path, encoder_type):
+#         if os.path.exists(encoder_path):
+#             print(f"Loading OneHotEncoder for {encoder_type} from {encoder_path}...")
+#             return load(encoder_path)
+#         else:
+#             raise FileNotFoundError(f"{encoder_type} encoder file not found at {encoder_path}")
+
+#     def preprocess_image(self, image):
+#         if image.mode == 'RGBA':
+#             image = image.convert('RGB')
+#         img = image.resize((256, 256))
+#         img_array = np.array(img)
+#         img_array = np.expand_dims(img_array, axis=0)
+#         img_array = img_array / 255.0
+#         return img_array
+
+#     def predict(self, images):
+#         results = []
+#         continuous_sums = None
+#         processed_images = np.array([self.preprocess_image(image) for image in images])
+#         processed_images = np.vstack(processed_images)
+#         predictions = self.model.predict(processed_images)
+#         print("Predictions shape:", {k: v.shape for k, v in predictions.items()})
+#         for idx in range(len(images)):
+#             try:
+#                 arousal_pred = predictions['arousal_output'][idx]
+#                 dominance_pred = predictions['dominance_output'][idx]
+#                 continuous_pred = predictions['continuous_output'][idx]
+#                 results.append({
+#                     "arousal": arousal_pred,
+#                     "dominance": dominance_pred,
+#                     "continuous": continuous_pred
+#                 })
+#                 if continuous_sums is None:
+#                     continuous_sums = continuous_pred
+#                 else:
+#                     continuous_sums += continuous_pred
+#             except Exception as e:
+#                 print(f"Error processing image {idx + 1}: {e}")
+
+#         if not results:
+#             raise ValueError("No valid predictions were made. Please check the input images.")
+
+#         final_arousal = Counter([np.argmax(res['arousal']) for res in results]).most_common(1)[0][0]
+#         final_dominance = Counter([np.argmax(res['dominance']) for res in results]).most_common(1)[0][0]
+#         continuous_averages = continuous_sums / len(images)
+
+#         arousal_label = self.arousal_encoder.inverse_transform(
+#             np.eye(self.arousal_encoder.categories_[0].shape[0])[final_arousal].reshape(1, -1)
+#         )
+#         dominance_label = self.dominance_encoder.inverse_transform(
+#             np.eye(self.dominance_encoder.categories_[0].shape[0])[final_dominance].reshape(1, -1)
+#         )
+
+#         class_names = ['effort', 'frustration', 'mental_demand', 'performance', 'physical_demand']
+#         continuous_results = {name: continuous_averages[i] for i, name in enumerate(class_names)}
+
+#         return {
+#             "arousal": arousal_label[0][0],
+#             "dominance": dominance_label[0][0],
+#             "continuous": continuous_results
+#         }
+
+
 class ResNet50V2Model:
     _instance = None
 
@@ -147,9 +236,11 @@ class ResNet50V2Model:
         self.model = self.load_model(RESNET50V2_MODEL_PATH)
         self.arousal_encoder = self.load_encoder(AROUSAL_ENCODER_PATH, "Arousal")
         self.dominance_encoder = self.load_encoder(DOMINANCE_ENCODER_PATH, "Dominance")
+        self.min_max_scaler = self.load_scaler(MIN_MAX_SCALER_PATH)
         self._initialized = True
 
     def load_model(self, model_path):
+        """Load the pre-trained model."""
         if os.path.exists(model_path):
             print(f"Loading model from {model_path}...")
             return tf.keras.models.load_model(model_path)
@@ -157,67 +248,101 @@ class ResNet50V2Model:
             raise FileNotFoundError(f"Model file not found at {model_path}")
 
     def load_encoder(self, encoder_path, encoder_type):
+        """Load the LabelEncoder for categorical outputs."""
         if os.path.exists(encoder_path):
-            print(f"Loading OneHotEncoder for {encoder_type} from {encoder_path}...")
+            print(f"Loading LabelEncoder for {encoder_type} from {encoder_path}...")
             return load(encoder_path)
         else:
             raise FileNotFoundError(f"{encoder_type} encoder file not found at {encoder_path}")
 
+    def load_scaler(self, scaler_path):
+        """Load the MinMaxScaler for continuous outputs."""
+        if os.path.exists(scaler_path):
+            print(f"Loading MinMaxScaler from {scaler_path}...")
+            return load(scaler_path)
+        else:
+            raise FileNotFoundError(f"MinMaxScaler file not found at {scaler_path}")
+
     def preprocess_image(self, image):
+        """Preprocess a single image for model inference."""
         if image.mode == 'RGBA':
             image = image.convert('RGB')
-        img = image.resize((256, 256))
+        img = image.resize((224, 224))  # Assuming model input size is 224X224
         img_array = np.array(img)
         img_array = np.expand_dims(img_array, axis=0)
-        img_array = img_array / 255.0
+        img_array = img_array / 255.0  # Normalize pixel values to [0, 1]
         return img_array
 
     def predict(self, images):
-        results = []
-        continuous_sums = None
+        """
+        Predict using the model and return outputs for all classes.
+
+        Args:
+            images (list): List of PIL.Image objects.
+
+        Returns:
+            list: A list of dictionaries with predictions for all outputs.
+        """
+        # Preprocess images
         processed_images = np.array([self.preprocess_image(image) for image in images])
         processed_images = np.vstack(processed_images)
+
+        # Get predictions from the model
         predictions = self.model.predict(processed_images)
-        print("Predictions shape:", {k: v.shape for k, v in predictions.items()})
+        print("Predictions received for all outputs.")
+
+        # Separate outputs
+        arousal_preds = predictions[0]  # Arousal (categorical)
+        dominance_preds = predictions[1]  # Dominance (categorical)
+        frustration_preds = predictions[2]  # Frustration (continuous)
+        mental_demand_preds = predictions[3]  # Mental Demand (continuous)
+        performance_preds = predictions[4]  # Performance (continuous)
+        physical_demand_preds = predictions[5]  # Physical Demand (continuous)
+        effort_preds = predictions[6]  # Effort (continuous)
+
+        results = []
         for idx in range(len(images)):
             try:
-                arousal_pred = predictions['arousal_output'][idx]
-                dominance_pred = predictions['dominance_output'][idx]
-                continuous_pred = predictions['continuous_output'][idx]
+                # Decode categorical predictions using LabelEncoder
+                arousal_label = self.arousal_encoder.inverse_transform([np.argmax(arousal_preds[idx])])[0]
+                dominance_label = self.dominance_encoder.inverse_transform([np.argmax(dominance_preds[idx])])[0]
+
+                # Scale continuous predictions back to the original range
+                continuous_values = np.array([ 
+                    frustration_preds[idx][0], 
+                    mental_demand_preds[idx][0], 
+                    performance_preds[idx][0], 
+                    physical_demand_preds[idx][0], 
+                    effort_preds[idx][0]
+                ]).reshape(1, -1)
+                scaled_values = self.min_max_scaler.inverse_transform(continuous_values)[0]
+
+                # Ensure continuous values are positive (take absolute values if negative)
+                scaled_values = np.abs(scaled_values)
+
+                # Cap continuous values at 21 if they exceed it
+                scaled_values = np.minimum(scaled_values, 21)
+
+                # Append predictions to results
                 results.append({
-                    "arousal": arousal_pred,
-                    "dominance": dominance_pred,
-                    "continuous": continuous_pred
+                    "arousal": arousal_label,
+                    "dominance": dominance_label,
+                    "frustration": float(scaled_values[0]),
+                    "mental_demand": float(scaled_values[1]),
+                    "performance": float(scaled_values[2]),
+                    "physical_demand": float(scaled_values[3]),
+                    "effort": float(scaled_values[4]),
                 })
-                if continuous_sums is None:
-                    continuous_sums = continuous_pred
-                else:
-                    continuous_sums += continuous_pred
+
             except Exception as e:
                 print(f"Error processing image {idx + 1}: {e}")
 
         if not results:
             raise ValueError("No valid predictions were made. Please check the input images.")
 
-        final_arousal = Counter([np.argmax(res['arousal']) for res in results]).most_common(1)[0][0]
-        final_dominance = Counter([np.argmax(res['dominance']) for res in results]).most_common(1)[0][0]
-        continuous_averages = continuous_sums / len(images)
+        return results
 
-        arousal_label = self.arousal_encoder.inverse_transform(
-            np.eye(self.arousal_encoder.categories_[0].shape[0])[final_arousal].reshape(1, -1)
-        )
-        dominance_label = self.dominance_encoder.inverse_transform(
-            np.eye(self.dominance_encoder.categories_[0].shape[0])[final_dominance].reshape(1, -1)
-        )
 
-        class_names = ['effort', 'frustration', 'mental_demand', 'performance', 'physical_demand']
-        continuous_results = {name: continuous_averages[i] for i, name in enumerate(class_names)}
-
-        return {
-            "arousal": arousal_label[0][0],
-            "dominance": dominance_label[0][0],
-            "continuous": continuous_results
-        }
 
 def initialize_models():
     global QG, AG, DG, ResNet50

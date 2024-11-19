@@ -15,7 +15,6 @@
         <input type="file" id="imageInput" name="imageInput" multiple accept="image/*,image/jpeg,image/png,image/gif">
         <button type="submit">Upload Images</button>
     </form>
-    
 
     <!-- Display prediction results -->
     {% if results %}
@@ -27,9 +26,11 @@
                 <p><strong>Dominance:</strong> {{ result.dominance }}</p>
                 <h4>Continuous Results:</h4>
                 <ul>
-                    {% for key, value in result.continuous.items %}
-                        <li><strong>{{ key }}:</strong> {{ value }}</li>
-                    {% endfor %}
+                    <li><strong>Frustration:</strong> {{ result.frustration }}</li>
+                    <li><strong>Mental Demand:</strong> {{ result.mental_demand }}</li>
+                    <li><strong>Performance:</strong> {{ result.performance }}</li>
+                    <li><strong>Physical Demand:</strong> {{ result.physical_demand }}</li>
+                    <li><strong>Effort:</strong> {{ result.effort }}</li>
                 </ul>
             {% endfor %}
         </div>
@@ -43,14 +44,14 @@
             <p><strong>Most Common Dominance:</strong> {{ overall_results.dominance }}</p>
             <h4>Average Continuous Results:</h4>
             <ul>
-                {% for key, value in overall_results.average_continuous.items %}
-                    <li><strong>{{ key }}:</strong> {{ value }}</li>
-                {% endfor %}
+                <li><strong>Frustration:</strong> {{ overall_results.average_continuous.frustration }}</li>
+                <li><strong>Mental Demand:</strong> {{ overall_results.average_continuous.mental_demand }}</li>
+                <li><strong>Performance:</strong> {{ overall_results.average_continuous.performance }}</li>
+                <li><strong>Physical Demand:</strong> {{ overall_results.average_continuous.physical_demand }}</li>
+                <li><strong>Effort:</strong> {{ overall_results.average_continuous.effort }}</li>
             </ul>
         </div>
     {% endif %}
-
-
 
     {% if error %}
         <p style="color: red;">Error: {{ error }}</p>
